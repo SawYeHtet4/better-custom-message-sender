@@ -1,28 +1,26 @@
 # Better Custom Message Sender
 
-AWS Lambda function for AWS Cognito Custom Message Sender that handles both Email and SMS notifications.
+AWS Lambda function for AWS Cognito Custom Message Sender that handles SMS notifications.
+
+**Author**: Saw Ye Htet
+**Email**: sawyehtet@yomafleet.com
 
 ## Overview
 
-This Lambda function is designed to work with AWS Cognito's custom message sender feature. It intercepts Cognito's authentication flows (signup, password reset, MFA, etc.) and sends customized email and SMS messages to users.
+This Lambda function is designed to work with AWS Cognito's custom SMS sender feature. It intercepts Cognito's authentication flows (signup, password reset, MFA, etc.) and sends customized SMS messages to users.
 
 ## Features
 
-- **Email Support**: Multiple transport options
-  - SMTP (MailTrap for development/testing)
-  - AWS SES for production
-  - AWS SQS for asynchronous processing
 - **SMS Support**: Integration with external SMS API
 - **Security**: Uses AWS KMS for decrypting OTP codes from Cognito
-- **Customizable Templates**: HTML email templates with responsive design
-- **Event Support**: Handles multiple Cognito trigger sources:
+- **Custom Messages**: Different SMS templates for different trigger types
+- **Event Support**: Handles multiple Cognito SMS trigger sources:
   - Sign Up
   - Forgot Password
   - Resend Code
   - Update User Attribute
   - Verify User Attribute
   - Admin Create User
-  - Account Takeover Notification
 
 ## Architecture
 
@@ -41,11 +39,8 @@ The project follows clean architecture principles:
 │   ├── interface/              # Infrastructure implementations
 │   │   ├── encrypter/          # AWS KMS encryption/decryption
 │   │   ├── logger/             # Structured logging
-│   │   └── message_sender/     # Email and SMS sending
+│   │   └── message_sender/     # SMS sending
 │   └── usecase/                # Business logic
-├── assets/
-│   └── templates/
-│       └── email/              # HTML email templates
 └── events/                     # Sample event payloads for testing
 ```
 
@@ -57,8 +52,7 @@ The project follows clean architecture principles:
 - An AWS account with:
   - Cognito User Pool configured
   - KMS key for encryption
-  - (Optional) SES verified domain or SQS queue
-  - (Optional) SMS API credentials
+  - SMS API credentials
 
 ## Setup
 
@@ -75,25 +69,41 @@ The project follows clean architecture principles:
 
 3. **Configure environment variables**:
    ```bash
-   cp .env_example .env
-   # Edit .env with your configuration
+   cp env.json.example env.json
+   # Edit env.json with your configuration
    ```
 
 4. **Environment Variables**:
    - `APP`: Application name
    - `VERSION`: Application version
    - `ENV`: Environment (development, staging, production)
-   - `EMAIL_FROM`: Sender email address
-   - `MAIL_TRANSPORT`: Email transport method (smtp, SES, SQS)
-   - `MAIL_TRAP_HOST`: SMTP host for MailTrap
-   - `MAIL_TRAP_PORT`: SMTP port
-   - `MAIL_TRAP_USER`: SMTP username
-   - `MAIL_TRAP_PASSWORD`: SMTP password
-   - `BLACK_LIST_EMAILS`: Comma-separated list of blocked emails
    - `SMS_HOST`: SMS API endpoint
    - `SMS_AUTH_KEY`: SMS API authentication key
-   - `KEY_ID`: AWS KMS key ID for decryption
-   - `SQS_QUEUE_URL`: (Optional) SQS queue URL for email processing
+   - `KEY_ID`: AWS KMS key ARN for decryption
+
+## SMS Messages
+
+The Lambda sends different messages based on trigger type:
+
+### Sign Up
+```
+Welcome to Yoma Fleet Better! Your verification code is {code}. DO NOT share it with anyone.
+```
+
+### Forgot Password
+```
+Your Yoma Fleet Better password reset code is {code}. DO NOT share it with anyone.
+```
+
+### Resend Code
+```
+Your Yoma Fleet Better verification code is {code}. DO NOT share it with anyone.
+```
+
+### Admin Create User
+```
+Welcome to Yoma Fleet Better! Your temporary password is {code}. Please change it after login.
+```
 
 ## Building
 
@@ -108,23 +118,34 @@ GOOS=linux GOARCH=amd64 go build -o main
 
 ## Testing Locally
 
-1. **Create env.json** with your environment variables:
-   ```json
-   {
-     "CustomMessageSenderFunction": {
-       "APP": "Better Custom Message Sender",
-       "EMAIL_FROM": "noreply@example.com",
-       "MAIL_TRANSPORT": "smtp",
-       ...
-     }
-   }
-   ```
+1. **Create env.json** with your environment variables (see env.json.example)
 
-2. **Invoke locally with SAM**:
-   ```bash
-   sam build
-   sam local invoke --env-vars env.json --event events/singup.json CustomMessageSenderFunction
-   ```
+2. **Test different SMS triggers**:
+
+```bash
+# Test SMS signup
+make invoke-sms-signup
+
+# Test SMS forgot password
+make invoke-sms-forgot
+
+# Test SMS admin create user
+make invoke-sms-admin
+
+# Test SMS resend code
+make invoke-sms-resend
+```
+
+**Important Note About Test Events**:
+- The event files contain `"YOUR_ENCRYPTED_CODE_HERE_FROM_COGNITO"` as a placeholder
+- This is **not** a real encrypted code and will cause a base64 decryption error
+- To get real encrypted codes, you need to:
+  1. Deploy the Lambda to AWS
+  2. Configure it with a Cognito User Pool
+  3. Trigger an actual event (signup, password reset, etc.)
+  4. Capture the real encrypted code from CloudWatch Logs
+  5. Replace the placeholder in your test event file
+- Local testing without real codes will verify the build and event flow, but will fail at decryption
 
 ## Running Tests
 
@@ -155,49 +176,79 @@ make test
 ## Cognito Integration
 
 1. In your Cognito User Pool settings, navigate to "Triggers"
-2. Select "Custom message sender" trigger
+2. Select "Custom SMS sender" trigger
 3. Choose this Lambda function
 4. Configure KMS key for encryption
 
-## Email Templates
+## SMS API Integration
 
-HTML email templates are located in `assets/templates/email/`. The templates use Go's `html/template` package.
+The Lambda expects an SMS API with the following specifications:
 
-Available templates:
-- `index.html`: Base template with header and footer
-- `verify.html`: Email verification template
-- `forgot_password.html`: Password reset template
-- `admin_create_user.html`: Admin user creation template
-- `welcome.html`: Welcome message template
+**Endpoint**: `POST /api/v2/send`
 
-## Customization
+**Request Headers**:
+```
+Content-Type: application/json
+Authorization: Bearer {SMS_AUTH_KEY}
+```
 
-### Branding
+**Request Body**:
+```json
+{
+  "to": "+1234567890",
+  "message": "Your OTP code...",
+  "sender": "Yoma Fleet"
+}
+```
 
-Edit the email templates in `assets/templates/email/` to match your branding:
-- Update colors in the CSS variables
-- Change logo URLs
-- Modify footer links and content
+**Response**:
+```json
+{
+  "status": true
+}
+```
 
-### SMS Messages
-
-SMS message content can be modified in `pkg/usecase/message_sender.go` in the `sendSMS` function.
-
-### Subject Lines
-
-Email subjects are built in the `buildSubject` function in `pkg/usecase/message_sender.go`.
+Compatible with most SMS providers (Twilio, Vonage, MessageBird, etc.)
 
 ## Troubleshooting
 
 ### Common Issues
 
 1. **KMS Decryption Errors**: Ensure the Lambda execution role has permissions to use the KMS key
-2. **Email Not Sending**: Check SES domain verification and sending limits
-3. **Template Errors**: Verify template syntax and ensure all referenced templates exist
+2. **SMS Not Sending**: Check SMS_HOST and SMS_AUTH_KEY configuration
+3. **Phone Number Format**: Must include country code (e.g., +1234567890)
 
 ### Logs
 
 The function uses structured JSON logging. Check CloudWatch Logs for detailed execution logs.
+
+## Event Files
+
+Test event files are available in the `events/` directory:
+
+- `sms_signup.json` - SMS verification on signup
+- `sms_forgot_password.json` - Password reset SMS
+- `sms_admin_create.json` - Admin user creation SMS
+- `sms_resend_code.json` - Resend verification code
+
+### Using Test Events
+
+**Important**: All test event files contain placeholder values that need to be replaced with real data:
+
+1. **Encrypted Code**: Replace `"YOUR_ENCRYPTED_CODE_HERE_FROM_COGNITO"` with a real encrypted code from Cognito
+   - This can only be obtained from actual Cognito events after deployment
+   - Without a real encrypted code, local testing will fail at KMS decryption
+
+2. **Phone Number**: Replace `"+1234567890"` with your test phone number
+   - Must include country code (e.g., `+959xxxxxxxxx` for Myanmar)
+
+3. **User Pool ID**: Replace `"us-east-1_EXAMPLE123"` with your actual Cognito User Pool ID
+
+4. **KMS Key**: Ensure `KEY_ID` in `env.json` matches your Cognito User Pool's KMS key ARN
+
+**Expected Behavior**:
+- ✅ With placeholder codes: Lambda will fail at decryption (expected)
+- ✅ With real codes from Cognito: Lambda will decrypt and send SMS successfully
 
 ## Contributing
 
@@ -213,4 +264,4 @@ The function uses structured JSON logging. Check CloudWatch Logs for detailed ex
 
 ## Support
 
-For issues and questions, please open an issue in the repository.
+For issues and questions, please contact the author or open an issue in the repository.

@@ -1,8 +1,8 @@
 {
   "version": "1",
   "triggerSource": "CustomSMSSender_SignUp",
-  "region": "us-east-1",
-  "userPoolId": "us-east-1_EXAMPLE123",
+  "region": "ap-southeast-1",
+  "userPoolId": "ap-southeast-1_EXAMPLE123",
   "userName": "test-user-12345678-1234-1234-1234-123456789012",
   "callerContext": {
     "awsSdkVersion": "aws-sdk-unknown-unknown",
@@ -15,7 +15,7 @@
     "userAttributes": {
       "sub": "12345678-1234-1234-1234-123456789012",
       "cognito:user_status": "UNCONFIRMED",
-      "name": "Test User",
+      "name": "Saw Ye Htet",
       "cognito:phone_number_alias": "+1234567890",
       "phone_number_verified": "false",
       "phone_number": "+1234567890"

@@ -1,7 +1,7 @@
 AWSTemplateFormatVersion: "2010-09-09"
 Transform: AWS::Serverless-2016-10-31
 
-Description: AWS Cognito Custom Message Sender Lambda Function (Email & SMS)
+Description: AWS Cognito Custom Message Sender Lambda Function (SMS Only)
 
 Globals:
   Function:
@@ -12,22 +12,14 @@ Globals:
         APP: ""
         VERSION: ""
         ENV: ""
-        EMAIL_FROM: ""
-        MAIL_TRANSPORT: ""
-        MAIL_TRAP_HOST: ""
-        MAIL_TRAP_PORT: ""
-        MAIL_TRAP_USER: ""
-        MAIL_TRAP_PASSWORD: ""
-        BLACK_LIST_EMAILS: ""
         SMS_HOST: ""
         SMS_AUTH_KEY: ""
         KEY_ID: ""
-        SQS_QUEUE_URL: ""
 
 Resources:
   CustomMessageSenderFunction:
     Type: AWS::Serverless::Function
     Properties:
-      Description: "Cognito Custom Message Sender for Email and SMS"
+      Description: "Cognito Custom Message Sender for SMS"
       CodeUri: cmd/function/message_sender/
       Handler: main

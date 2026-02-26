@@ -6,17 +6,17 @@ zipFileName := main.zip
 build:
 	sam build
 
-invoke:
-	sam build && sam local invoke --env-vars env.json --event events/signup.json CustomMessageSenderFunction
-
-invoke-sms:
+invoke-sms-signup:
 	sam build && sam local invoke --env-vars env.json --event events/sms_signup.json CustomMessageSenderFunction
 
-invoke-forgot:
-	sam build && sam local invoke --env-vars env.json --event events/forgot_password.json CustomMessageSenderFunction
+invoke-sms-forgot:
+	sam build && sam local invoke --env-vars env.json --event events/sms_forgot_password.json CustomMessageSenderFunction
 
-invoke-admin:
-	sam build && sam local invoke --env-vars env.json --event events/admin_create_user.json CustomMessageSenderFunction
+invoke-sms-admin:
+	sam build && sam local invoke --env-vars env.json --event events/sms_admin_create.json CustomMessageSenderFunction
+
+invoke-sms-resend:
+	sam build && sam local invoke --env-vars env.json --event events/sms_resend_code.json CustomMessageSenderFunction
 
 test:
 	go test -v -cover \

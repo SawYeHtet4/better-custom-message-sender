@@ -1,12 +1,7 @@
 package config
 
 const (
-	SESTransport      = "SES"
-	SQSTransport      = "SQS"
-	MailTrapTransport = "MailTrap"
-
-	EmailMessageType = "Email"
-	SMSMessageType   = "SMS"
+	SMSMessageType = "SMS"
 
 	ServiceHeaderKey = "X-SERVICE-Id"
 )

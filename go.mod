@@ -6,12 +6,8 @@ require (
 	github.com/aws/aws-cryptographic-material-providers-library/releases/go/mpl v0.3.0
 	github.com/aws/aws-encryption-sdk/releases/go/encryption-sdk v0.3.0
 	github.com/aws/aws-lambda-go v1.52.0
-	github.com/aws/aws-sdk-go v1.55.8
 	github.com/aws/aws-sdk-go-v2/config v1.32.10
 	github.com/aws/aws-sdk-go-v2/service/kms v1.50.1
-	github.com/aws/aws-sdk-go-v2/service/ses v1.34.19
-	github.com/aws/aws-sdk-go-v2/service/sqs v1.42.22
-	github.com/wneessen/go-mail v0.7.2
 )
 
 require (
@@ -36,5 +32,4 @@ require (
 	github.com/aws/smithy-go v1.24.1 // indirect
 	github.com/dafny-lang/DafnyRuntimeGo/v4 v4.11.2 // indirect
 	github.com/google/uuid v1.6.0 // indirect
-	golang.org/x/text v0.29.0 // indirect
 )
