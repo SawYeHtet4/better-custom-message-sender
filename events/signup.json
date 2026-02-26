@@ -1,0 +1,24 @@
+{
+  "version": "1",
+  "triggerSource": "CustomEmailSender_SignUp",
+  "region": "us-east-1",
+  "userPoolId": "us-east-1_EXAMPLE123",
+  "userName": "test-user-12345678-1234-1234-1234-123456789012",
+  "callerContext": {
+    "awsSdkVersion": "aws-sdk-unknown-unknown",
+    "clientId": "1234567890abcdefghijklmnop"
+  },
+  "request": {
+    "type": "customEmailSenderRequestV1",
+    "code": "YOUR_ENCRYPTED_CODE_HERE_FROM_COGNITO",
+    "clientMetadata": null,
+    "userAttributes": {
+      "sub": "12345678-1234-1234-1234-123456789012",
+      "cognito:email_alias": "testuser@example.com",
+      "email_verified": "false",
+      "cognito:user_status": "UNCONFIRMED",
+      "name": "Test User",
+      "email": "testuser@example.com"
+    }
+  }
+}
